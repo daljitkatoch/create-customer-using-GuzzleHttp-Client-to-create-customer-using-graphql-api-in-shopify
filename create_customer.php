@@ -79,36 +79,44 @@ $requestData = [
     ],
 ];
 
-$response = $client->request('POST', '', $requestData);
+try {
 
-$body = $response->getBody();
-$data = json_decode($body, true);
-$email = $variables['input']['email'];
-if (isset($data['errors'])) {
-	
-	$error_message = "";
-    $errors = $data['errors'];
-	foreach($errors as $error){
-		$error_message .= $error['message'];
-	}
-	$logfile->error("error for  $email: $error_message \n");
-	
-} else {
-	
-	$field_errors = $data['data']['customerCreate']['userErrors'];
-	if(count($field_errors)>0){
-		$field_error_message = "";		
-		foreach($field_errors as $error){
-			$field_error_message .= $error['message'];
+	$response = $client->request('POST', '', $requestData);
+	$body = $response->getBody();
+	$data = json_decode($body, true);
+	$email = $variables['input']['email'];
+	if (isset($data['errors'])) {
+		
+		$error_message = "";
+		$errors = $data['errors'];
+		foreach($errors as $error){
+			$error_message .= $error['message'];
 		}
-		$logfile->error("error for  $email: $field_error_message \n");
-		echo "<div style='color:red;'>error for  $email: ".$field_error_message. "</div>\n";
-	}else{
+		$logfile->error("error for  $email: $error_message \n");
 		
-		$id = $data['data']['customerCreate']['customer']['id'];
-		$logfile->info("Customer created successfully $email: $id");
-		echo $success_message = "<div style='color:green;'>Customer created: ".$id. "</div>\n";
+	} else {
+	
+		$field_errors = $data['data']['customerCreate']['userErrors'];
+		if(count($field_errors)>0){
+			$field_error_message = "";		
+			foreach($field_errors as $error){
+				$field_error_message .= $error['message'];
+			}
+			$logfile->error("error for  $email: $field_error_message \n");
+			echo "<div style='color:red;'>error for  $email: ".$field_error_message. "</div>\n";
+		}else{
+			
+			$id = $data['data']['customerCreate']['customer']['id'];
+			$logfile->info("Customer created successfully $email: $id");
+			echo $success_message = "<div style='color:green;'>Customer created: ".$id. "</div>\n";
+			
+		}	
 		
-	}	
+	}
+	
+} catch (\Exception $e) {
+
+	$statusCode = $e->getResponse()->getStatusCode();
+	echo $errorMessage = $e->getMessage();
 	
 }
